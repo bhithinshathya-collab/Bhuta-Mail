@@ -6,6 +6,9 @@
   <title>Bhuta Mail & Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <!-- Firebase SDKs for Real-Time Cross-Device Communication -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -155,7 +158,7 @@
       border: 1px dashed #0b57d0;
     }
 
-    /* Main Application */
+    /* Main Application Layout */
     .app-layout {
       display: flex;
       flex-direction: column;
@@ -785,7 +788,7 @@
           </div>
         </div>
 
-        <!-- Bhuta Chat Section (Teams / WhatsApp Style) -->
+        <!-- Bhuta Chat Section -->
         <div id="chat-section" class="chat-container hidden">
           <div class="chat-sidebar">
             <div class="chat-sidebar-header">
@@ -833,7 +836,19 @@
   </div>
 
   <script>
-    // Universal Sync Storage
+    // Hybrid Storage Engine (Firebase Realtime + LocalStorage Fallback)
+    const firebaseConfig = {
+      databaseURL: "https://bhuta-mail-default-rtdb.firebaseio.com"
+    };
+
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    } catch(e) {
+      console.log("Running in offline mode");
+    }
+
     function getStored(key, fallback) {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : fallback;
@@ -841,8 +856,9 @@
 
     function setStored(key, val) {
       localStorage.setItem(key, JSON.stringify(val));
-      // Dispatch custom event for same-window / instant cross-device updates
-      window.dispatchEvent(new Event('storage_updated'));
+      if (db) {
+        db.ref(key).set(val);
+      }
     }
 
     let users = getStored('bhuta_users', []);
@@ -863,55 +879,45 @@
         showAuthView('signup');
       }
 
-      // Listen to storage changes across tabs/devices if hosted on shared origin
-      window.addEventListener('storage', (e) => {
-        users = getStored('bhuta_users', []);
-        emails = getStored('bhuta_emails', []);
-        chatMessages = getStored('bhuta_chat_messages', []);
-        refreshActiveViews();
-      });
+      // Realtime Cloud Listener across any device over the internet
+      if (db) {
+        db.ref('bhuta_users').on('value', (snap) => {
+          if (snap.exists()) {
+            users = snap.val();
+            localStorage.setItem('bhuta_users', JSON.stringify(users));
+            renderAccountSwitcher();
+          }
+        });
 
-      window.addEventListener('storage_updated', () => {
-        users = getStored('bhuta_users', []);
-        emails = getStored('bhuta_emails', []);
-        chatMessages = getStored('bhuta_chat_messages', []);
-        refreshActiveViews();
-      });
+        db.ref('bhuta_emails').on('value', (snap) => {
+          if (snap.exists()) {
+            emails = snap.val();
+            localStorage.setItem('bhuta_emails', JSON.stringify(emails));
+            if (currentMainView === 'inbox' || currentMainView === 'sent') renderEmailList();
+          }
+        });
 
-      // Periodic poller for robust multi-device sync
-      setInterval(() => {
-        const freshUsers = getStored('bhuta_users', []);
-        const freshEmails = getStored('bhuta_emails', []);
-        const freshChats = getStored('bhuta_chat_messages', []);
-        
-        if (JSON.stringify(freshEmails) !== JSON.stringify(emails) || JSON.stringify(freshChats) !== JSON.stringify(chatMessages)) {
-          users = freshUsers;
-          emails = freshEmails;
-          chatMessages = freshChats;
-          refreshActiveViews();
-        }
-      }, 1000);
+        db.ref('bhuta_chat_messages').on('value', (snap) => {
+          if (snap.exists()) {
+            chatMessages = snap.val();
+            localStorage.setItem('bhuta_chat_messages', JSON.stringify(chatMessages));
+            if (currentMainView === 'chat') {
+              renderChatSidebar();
+              if (activeChatTarget) renderChatMessages();
+            }
+          }
+        });
+      }
     };
 
     function saveState() {
       setStored('bhuta_users', users);
       setStored('bhuta_emails', emails);
       setStored('bhuta_chat_messages', chatMessages);
-      setStored('bhuta_current_user', currentUser);
+      localStorage.setItem('bhuta_current_user', JSON.stringify(currentUser));
     }
 
-    function refreshActiveViews() {
-      if (currentUser) {
-        if (currentMainView === 'inbox' || currentMainView === 'sent') {
-          renderEmailList();
-        } else if (currentMainView === 'chat') {
-          renderChatSidebar();
-          if (activeChatTarget) renderChatMessages();
-        }
-      }
-    }
-
-    // Auth Views
+    // Auth Handling
     function showAuthView(view) {
       document.getElementById('auth-screen').classList.remove('hidden');
       document.getElementById('app-screen').classList.add('hidden');
@@ -970,7 +976,6 @@
         fullEmail = `${handle}@${customDomain}`;
       }
 
-      users = getStored('bhuta_users', []);
       if (users.some(u => u.email.toLowerCase() === fullEmail.toLowerCase())) {
         showToast('This Bhuta email handle is already taken');
         return;
@@ -993,12 +998,11 @@
 
     function confirmKeySaved() {
       if (tempUserForSecurityKey) {
-        users = getStored('bhuta_users', []);
         users.push(tempUserForSecurityKey);
         currentUser = tempUserForSecurityKey;
         tempUserForSecurityKey = null;
         saveState();
-        showToast('Account created and saved successfully!');
+        showToast('Account created and synchronized!');
         showApp();
       }
     }
@@ -1007,7 +1011,6 @@
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value.trim();
 
-      users = getStored('bhuta_users', []);
       const user = users.find(u => u.email.toLowerCase() === email && u.password === password);
       if (user) {
         currentUser = user;
@@ -1024,7 +1027,6 @@
 
     function handleRecoveryLogin() {
       const key = document.getElementById('recovery-key').value.trim().toUpperCase();
-      users = getStored('bhuta_users', []);
       const user = users.find(u => u.securityKey === key);
 
       if (user) {
@@ -1037,7 +1039,7 @@
       }
     }
 
-    // Main App Navigation
+    // Main Navigation
     function showApp() {
       document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('app-screen').classList.remove('hidden');
@@ -1049,7 +1051,7 @@
 
     function handleLogout() {
       currentUser = null;
-      saveState();
+      localStorage.removeItem('bhuta_current_user');
       document.getElementById('account-menu').classList.add('hidden');
       showAuthView('login');
     }
@@ -1059,7 +1061,6 @@
     }
 
     function renderAccountSwitcher() {
-      users = getStored('bhuta_users', []);
       const list = document.getElementById('account-list');
       list.innerHTML = '';
       users.forEach(u => {
@@ -1078,7 +1079,6 @@
     }
 
     function switchAccount(email) {
-      users = getStored('bhuta_users', []);
       const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
       if (target) {
         currentUser = target;
@@ -1115,9 +1115,8 @@
       }
     }
 
-    // Email Functions
+    // Email Messaging
     function renderEmailList() {
-      emails = getStored('bhuta_emails', []);
       const listContainer = document.getElementById('email-list-view');
       listContainer.innerHTML = '';
 
@@ -1191,7 +1190,6 @@
         return;
       }
 
-      emails = getStored('bhuta_emails', []);
       const newEmail = {
         id: 'msg-' + Date.now(),
         from: currentUser.email,
@@ -1219,7 +1217,6 @@
 
     // Bhuta Chat Functions
     function renderChatSidebar() {
-      chatMessages = getStored('bhuta_chat_messages', []);
       const chatList = document.getElementById('chat-list');
       chatList.innerHTML = '';
 
@@ -1262,7 +1259,6 @@
     }
 
     function renderChatMessages() {
-      chatMessages = getStored('bhuta_chat_messages', []);
       const container = document.getElementById('chat-messages');
       container.innerHTML = '';
 
@@ -1298,7 +1294,6 @@
 
       if (!text || !activeChatTarget) return;
 
-      chatMessages = getStored('bhuta_chat_messages', []);
       const newMsg = {
         id: 'chat-' + Date.now(),
         from: currentUser.email,
