@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bhuta Mail & Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      background-color: #f6f8fc;
+      color: #1f1f1f;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Auth Styling */
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f4f9;
+    }
+
+    .auth-card {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 28px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .auth-header h1 {
+      color: #0b57d0;
+      font-size: 28px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .auth-header p {
+      color: #444746;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #444746;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #747775;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: #0b57d0;
+      border-width: 2px;
+    }
+
+    .account-type-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #747775;
+      background: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #444746;
+    }
+
+    .type-btn.active {
+      background-color: #c2e7ff;
+      border-color: #041e49;
+      color: #041e49;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background-color: #0b57d0;
+      color: white;
+      border: none;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      background-color: #0842a0;
+    }
+
+    .auth-links {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .auth-links a {
+      color: #0b57d0;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .key-display {
+      background: #e9eef6;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      word-break: break-all;
+      margin-bottom: 12px;
+      border: 1px dashed #0b57d0;
+    }
+
+    /* Main Application */
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background-color: #f6f8fc;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 230px;
+    }
+
+    .logo-container h2 {
+      color: #444746;
+      font-size: 20px;
+    }
+
+    .search-bar {
+      flex: 1;
+      max-width: 720px;
+      background-color: #eaf1fb;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      padding: 4px 16px;
+    }
+
+    .search-bar input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .user-profile {
+      position: relative;
+    }
+
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #0b57d0;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .account-menu {
+      position: absolute;
+      right: 0;
+      top: 45px;
+      background: white;
+      width: 300px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      border-radius: 16px;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .account-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .account-item:hover {
+      background-color: #f0f4f9;
+    }
+
+    .main-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 256px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .compose-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      background-color: #c2e7ff;
+      border-radius: 16px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: #041e49;
+      cursor: pointer;
+      width: fit-content;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px;
+      height: 40px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #444746;
+    }
+
+    .nav-item.active {
+      background-color: #d3e3fd;
+      color: #041e49;
+      font-weight: 500;
+    }
+
+    .content-area {
+      flex: 1;
+      background-color: #ffffff;
+      border-radius: 16px;
+      margin-right: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Email View */
+    .email-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .email-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f2f2f2;
+      cursor: pointer;
+      gap: 16px;
+      font-size: 14px;
+    }
+
+    .email-item:hover {
+      box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,0.3);
+    }
+
+    .email-item.unread {
+      font-weight: bold;
+      background-color: #f2f6fc;
+    }
+
+    .email-sender {
+      width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .email-subject {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .email-date {
+      font-size: 12px;
+      color: #444746;
+    }
+
+    .email-detail {
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .email-detail-header {
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .email-detail-subject {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .email-detail-meta {
+      display: flex;
+      justify-content: space-between;
+      color: #444746;
+      font-size: 13px;
+    }
+
+    .email-detail-body {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Bhuta Chat (Teams / WhatsApp UI) */
+    .chat-container {
+      display: flex;
+      height: 100%;
+    }
+
+    .chat-sidebar {
+      width: 280px;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      background: #f8f9fa;
+    }
+
+    .chat-sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .chat-user-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-user-item:hover, .chat-user-item.active {
+      background-color: #e8f0fe;
+    }
+
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #efeae2;
+    }
+
+    .chat-header {
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message-bubble {
+      max-width: 65%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .message-bubble.incoming {
+      background: #ffffff;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+
+    .message-bubble.outgoing {
+      background: #d9fdd3;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+
+    .chat-input-area {
+      padding: 12px 16px;
+      background: #f0f2f5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 24px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .btn-chat-send {
+      background: #0084ff;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Compose Modal */
+    .compose-modal {
+      position: fixed;
+      bottom: 0;
+      right: 80px;
+      width: 500px;
+      height: 450px;
+      background: white;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14);
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+    }
+
+    .compose-header {
+      background: #f2f6fc;
+      padding: 10px 16px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .compose-body {
+      padding: 8px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .compose-input {
+      border: none;
+      border-bottom: 1px solid #f2f2f2;
+      padding: 8px 0;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .compose-textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      padding-top: 12px;
+      font-size: 14px;
+    }
+
+    .compose-footer {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-send {
+      background-color: #0b57d0;
+      color: white;
+      border: none;
+      padding: 8px 24px;
+      border-radius: 100px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      background-color: #323232;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="auth-container">
+    
+    <!-- Sign Up View -->
+    <div id="signup-card" class="auth-card">
+      <div class="auth-header">
+        <h1><span class="material-icons-outlined">mail</span> Bhuta Mail</h1>
+        <p>Create your new account</p>
+      </div>
+
+      <div class="account-type-selector">
+        <button class="type-btn active" onclick="setAccountType('standard')">Standard</button>
+        <button class="type-btn" onclick="setAccountType('student')">Student</button>
+        <button class="type-btn" onclick="setAccountType('custom')">Custom Domain</button>
+      </div>
+
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="signup-name" class="form-control" placeholder="John Doe">
+      </div>
+
+      <div class="form-group">
+        <label>Existing Email (Gmail / any)</label>
+        <input type="email" id="signup-existing" class="form-control" placeholder="you@gmail.com">
+      </div>
+
+      <div class="form-group">
+        <label>Bhuta Handle</label>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <input type="text" id="signup-handle" class="form-control" placeholder="username">
+          <span id="domain-suffix" style="font-size: 13px; color: #444746;">@bhutamail.com</span>
+        </div>
+      </div>
+
+      <div id="custom-domain-group" class="form-group hidden">
+        <label>Company Domain Name</label>
+        <input type="text" id="signup-custom-domain" class="form-control" placeholder="mycompany.com">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signup-password" class="form-control" placeholder="••••••••">
+      </div>
+
+      <button class="btn-primary" onclick="handleSignUp()">Let's Go</button>
+
+      <div class="auth-links">
+        <span>Already have an account?</span>
+        <a onclick="showAuthView('login')">Sign In</a>
+      </div>
+    </div>
+
+    <!-- Security Key View -->
+    <div id="key-card" class="auth-card hidden">
+      <div class="auth-header">
+        <h1><span class="material-icons-outlined">key</span> Save Your Key</h1>
+        <p>This key is required to recover your account if you forget your password.</p>
+      </div>
+
+      <div class="key-display" id="generated-key">BHUTA-XXXX-XXXX-XXXX</div>
+      
+      <p style="font-size: 12px; color: #b3261e; margin-bottom: 16px;">
+        Copy and paste this security key into your Notepad!
+      </p>
+
+      <button class="btn-primary" onclick="confirmKeySaved()">I Have Copied My Key</button>
+    </div>
+
+    <!-- Login View -->
+    <div id="login-card" class="auth-card hidden">
+      <div class="auth-header">
+        <h1><span class="material-icons-outlined">mail</span> Welcome Back</h1>
+        <p>We're excited to see you back!</p>
+      </div>
+
+      <div class="form-group">
+        <label>Bhuta Email</label>
+        <input type="email" id="login-email" class="form-control" placeholder="user@bhutamail.com">
+      </div>
+
+      <div class="form-group">
+        <label>Bhuta Password</label>
+        <input type="password" id="login-password" class="form-control" placeholder="••••••••">
+      </div>
+
+      <button class="btn-primary" onclick="handleLogin()">Sign In</button>
+
+      <div class="auth-links">
+        <a onclick="showAuthView('forgot')">I forgot my Bhuta password</a>
+        <a onclick="showAuthView('signup')">Create account</a>
+      </div>
+    </div>
+
+    <!-- Security Key Recovery View -->
+    <div id="forgot-card" class="auth-card hidden">
+      <div class="auth-header">
+        <h1><span class="material-icons-outlined">lock_reset</span> Password Recovery</h1>
+        <p>Recovery request will be sent to security team.</p>
+      </div>
+
+      <p style="font-size: 14px; margin-bottom: 16px;">
+        Do you have your Security Key from your notepad?
+      </p>
+
+      <div id="recovery-actions">
+        <button class="btn-primary" onclick="showKeyRecoveryInput()" style="margin-bottom: 8px;">Yes, I have it</button>
+        <button class="btn-primary" style="background:#747775;" onclick="showToast('Please check your offline notepad files.')">No, I don't have it</button>
+      </div>
+
+      <div id="key-input-group" class="form-group hidden" style="margin-top: 16px;">
+        <label>Enter Security Key</label>
+        <input type="text" id="recovery-key" class="form-control" placeholder="Paste your key here">
+        <button class="btn-primary" style="margin-top: 12px;" onclick="handleRecoveryLogin()">Verify Key & Sign In</button>
+      </div>
+
+      <div class="auth-links" style="margin-top: 16px;">
+        <a onclick="showAuthView('login')">Back to Sign In</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APP LAYOUT -->
+  <div id="app-screen" class="app-layout hidden">
+    
+    <header class="header">
+      <div class="logo-container">
+        <span class="material-icons-outlined" style="font-size: 28px; color: #0b57d0;">mail</span>
+        <h2>Bhuta Mail</h2>
+      </div>
+
+      <div class="search-bar">
+        <span class="material-icons-outlined" style="color: #444746;">search</span>
+        <input type="text" placeholder="Search mail or chat">
+      </div>
+
+      <div class="user-profile">
+        <div class="profile-avatar" id="current-user-avatar" onclick="toggleAccountMenu()">B</div>
+        
+        <div id="account-menu" class="account-menu hidden">
+          <div style="font-size: 12px; font-weight: bold; color: #444746; margin-bottom: 8px;">SWITCH ACCOUNTS</div>
+          <div id="account-list"></div>
+          <hr style="margin: 8px 0; border: 0; border-top: 1px solid #eee;">
+          <div class="account-item" onclick="addNewAccount()">
+            <span class="material-icons-outlined">person_add</span>
+            <span>Add another account</span>
+          </div>
+          <div class="account-item" onclick="handleLogout()">
+            <span class="material-icons-outlined">logout</span>
+            <span>Sign out</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-body">
+      
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <button class="compose-btn" onclick="openCompose()">
+          <span class="material-icons-outlined">edit</span>
+          Compose
+        </button>
+
+        <div class="nav-item active" onclick="switchView('inbox')" id="nav-inbox">
+          <span class="material-icons-outlined">inbox</span>
+          <span>Inbox</span>
+        </div>
+        <div class="nav-item" onclick="switchView('sent')" id="nav-sent">
+          <span class="material-icons-outlined">send</span>
+          <span>Sent</span>
+        </div>
+        <div class="nav-item" onclick="switchView('chat')" id="nav-chat">
+          <span class="material-icons-outlined">chat</span>
+          <span>Bhuta Chat</span>
+        </div>
+      </div>
+
+      <!-- Right Main Content -->
+      <div class="content-area">
+        
+        <!-- Mail View -->
+        <div id="mail-section" style="display:flex; flex-direction:column; height:100%;">
+          <div id="email-list-view" class="email-list"></div>
+
+          <div id="email-detail-view" class="email-detail hidden">
+            <div class="email-detail-header">
+              <button onclick="closeEmailDetail()" style="border:none; background:none; cursor:pointer; margin-bottom: 12px; display:flex; align-items:center; gap:4px; color:#0b57d0;">
+                <span class="material-icons-outlined">arrow_back</span> Back
+              </button>
+              <div class="email-detail-subject" id="detail-subject"></div>
+              <div class="email-detail-meta">
+                <span id="detail-sender"></span>
+                <span id="detail-date"></span>
+              </div>
+            </div>
+            <div class="email-detail-body" id="detail-body"></div>
+            
+            <div style="margin-top: 24px;">
+              <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="replyToCurrentEmail()">
+                <span class="material-icons-outlined" style="vertical-align: middle; font-size: 16px;">reply</span> Reply
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bhuta Chat Section (Teams / WhatsApp Style) -->
+        <div id="chat-section" class="chat-container hidden">
+          <div class="chat-sidebar">
+            <div class="chat-sidebar-header">
+              <div class="form-group" style="margin-bottom:0;">
+                <input type="text" id="new-chat-email" class="form-control" placeholder="Enter Bhuta email to chat...">
+                <button class="btn-primary" style="padding: 6px; font-size: 12px; margin-top:6px;" onclick="startNewChat()">Start Chat</button>
+              </div>
+            </div>
+            <div class="chat-list" id="chat-list"></div>
+          </div>
+
+          <div class="chat-main">
+            <div class="chat-header" id="chat-header">
+              <span id="active-chat-user">Select a chat to start messaging</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-area">
+              <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="handleChatKeyPress(event)">
+              <button class="btn-chat-send" onclick="sendChatMessage()">
+                <span class="material-icons-outlined">send</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Compose Email Modal -->
+  <div id="compose-modal" class="compose-modal hidden">
+    <div class="compose-header">
+      <span>New Message</span>
+      <span class="material-icons-outlined" style="cursor: pointer;" onclick="closeCompose()">close</span>
+    </div>
+    <div class="compose-body">
+      <input type="email" id="compose-to" class="compose-input" placeholder="Recipients (e.g. user@bhutamail.com)">
+      <input type="text" id="compose-subject" class="compose-input" placeholder="Subject">
+      <textarea id="compose-message" class="compose-textarea" placeholder="Write your message..."></textarea>
+    </div>
+    <div class="compose-footer">
+      <button class="btn-send" onclick="sendEmail()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // State Persistence
+    function getStored(key, fallback) {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : fallback;
+    }
+
+    function setStored(key, val) {
+      localStorage.setItem(key, JSON.stringify(val));
+    }
+
+    let users = getStored('bhuta_users', []);
+    let emails = getStored('bhuta_emails', []);
+    let chatMessages = getStored('bhuta_chat_messages', []);
+    let currentUser = getStored('bhuta_current_user', null);
+
+    let currentAccountType = 'standard';
+    let currentMainView = 'inbox'; // inbox, sent, chat
+    let activeChatTarget = null;
+    let selectedEmail = null;
+    let tempUserForSecurityKey = null;
+
+    window.onload = function() {
+      if (currentUser) {
+        showApp();
+      } else {
+        showAuthView('signup');
+      }
+    };
+
+    function saveState() {
+      setStored('bhuta_users', users);
+      setStored('bhuta_emails', emails);
+      setStored('bhuta_chat_messages', chatMessages);
+      setStored('bhuta_current_user', currentUser);
+    }
+
+    // Auth Views
+    function showAuthView(view) {
+      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('app-screen').classList.add('hidden');
+      
+      document.getElementById('signup-card').classList.add('hidden');
+      document.getElementById('key-card').classList.add('hidden');
+      document.getElementById('login-card').classList.add('hidden');
+      document.getElementById('forgot-card').classList.add('hidden');
+
+      if (view === 'signup') document.getElementById('signup-card').classList.remove('hidden');
+      if (view === 'key') document.getElementById('key-card').classList.remove('hidden');
+      if (view === 'login') document.getElementById('login-card').classList.remove('hidden');
+      if (view === 'forgot') document.getElementById('forgot-card').classList.remove('hidden');
+    }
+
+    function setAccountType(type) {
+      currentAccountType = type;
+      document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const domainSuffix = document.getElementById('domain-suffix');
+      const customGroup = document.getElementById('custom-domain-group');
+
+      if (type === 'standard') {
+        domainSuffix.innerText = '@bhutamail.com';
+        customGroup.classList.add('hidden');
+      } else if (type === 'student') {
+        domainSuffix.innerText = '@student.bhutamail.com';
+        customGroup.classList.add('hidden');
+      } else if (type === 'custom') {
+        domainSuffix.innerText = '@';
+        customGroup.classList.remove('hidden');
+      }
+    }
+
+    function handleSignUp() {
+      const name = document.getElementById('signup-name').value.trim();
+      const existingEmail = document.getElementById('signup-existing').value.trim();
+      const handle = document.getElementById('signup-handle').value.trim();
+      const password = document.getElementById('signup-password').value.trim();
+      
+      if (!name || !handle || !password) {
+        showToast('Please fill in all required fields');
+        return;
+      }
+
+      let fullEmail = '';
+      if (currentAccountType === 'standard') fullEmail = `${handle}@bhutamail.com`;
+      if (currentAccountType === 'student') fullEmail = `${handle}@student.bhutamail.com`;
+      if (currentAccountType === 'custom') {
+        const customDomain = document.getElementById('signup-custom-domain').value.trim();
+        if (!customDomain) {
+          showToast('Please provide your custom domain name');
+          return;
+        }
+        fullEmail = `${handle}@${customDomain}`;
+      }
+
+      // Check existing accounts
+      if (users.some(u => u.email.toLowerCase() === fullEmail.toLowerCase())) {
+        showToast('This Bhuta email handle is already taken');
+        return;
+      }
+
+      const secKey = 'BHUTA-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+
+      tempUserForSecurityKey = {
+        name,
+        existingEmail,
+        email: fullEmail,
+        password,
+        securityKey: secKey,
+        type: currentAccountType
+      };
+
+      document.getElementById('generated-key').innerText = secKey;
+      showAuthView('key');
+    }
+
+    function confirmKeySaved() {
+      if (tempUserForSecurityKey) {
+        users.push(tempUserForSecurityKey);
+        currentUser = tempUserForSecurityKey;
+        tempUserForSecurityKey = null;
+        saveState();
+        showToast('Account created and remembered!');
+        showApp();
+      }
+    }
+
+    function handleLogin() {
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value.trim();
+
+      const user = users.find(u => u.email.toLowerCase() === email && u.password === password);
+      if (user) {
+        currentUser = user;
+        saveState();
+        showApp();
+      } else {
+        showToast('Invalid email or password');
+      }
+    }
+
+    function showKeyRecoveryInput() {
+      document.getElementById('key-input-group').classList.remove('hidden');
+    }
+
+    function handleRecoveryLogin() {
+      const key = document.getElementById('recovery-key').value.trim().toUpperCase();
+      const user = users.find(u => u.securityKey === key);
+
+      if (user) {
+        currentUser = user;
+        saveState();
+        showToast('Security Key verified. Welcome back!');
+        showApp();
+      } else {
+        showToast('Invalid Security Key.');
+      }
+    }
+
+    // Main App Navigation
+    function showApp() {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+
+      document.getElementById('current-user-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
+      renderAccountSwitcher();
+      switchView('inbox');
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      saveState();
+      document.getElementById('account-menu').classList.add('hidden');
+      showAuthView('login');
+    }
+
+    function toggleAccountMenu() {
+      document.getElementById('account-menu').classList.toggle('hidden');
+    }
+
+    function renderAccountSwitcher() {
+      const list = document.getElementById('account-list');
+      list.innerHTML = '';
+      users.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'account-item';
+        item.innerHTML = `
+          <div class="profile-avatar" style="width:28px; height:28px; font-size:12px;">${u.name.charAt(0)}</div>
+          <div style="overflow:hidden;">
+            <div style="font-size:13px; font-weight:500;">${u.name}</div>
+            <div style="font-size:11px; color:#747775; overflow:hidden; text-overflow:ellipsis;">${u.email}</div>
+          </div>
+        `;
+        item.onclick = () => switchAccount(u.email);
+        list.appendChild(item);
+      });
+    }
+
+    function switchAccount(email) {
+      const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (target) {
+        currentUser = target;
+        saveState();
+        showApp();
+        document.getElementById('account-menu').classList.add('hidden');
+        showToast(`Switched to ${currentUser.email}`);
+      }
+    }
+
+    function addNewAccount() {
+      document.getElementById('account-menu').classList.add('hidden');
+      showAuthView('signup');
+    }
+
+    function switchView(view) {
+      currentMainView = view;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      const mailSection = document.getElementById('mail-section');
+      const chatSection = document.getElementById('chat-section');
+
+      if (view === 'inbox' || view === 'sent') {
+        document.getElementById(`nav-${view}`).classList.add('active');
+        mailSection.classList.remove('hidden');
+        chatSection.classList.add('hidden');
+        closeEmailDetail();
+        renderEmailList();
+      } else if (view === 'chat') {
+        document.getElementById('nav-chat').classList.add('active');
+        mailSection.classList.add('hidden');
+        chatSection.classList.remove('hidden');
+        renderChatSidebar();
+      }
+    }
+
+    // Email Functions
+    function renderEmailList() {
+      const listContainer = document.getElementById('email-list-view');
+      listContainer.innerHTML = '';
+
+      const filteredEmails = emails.filter(e => {
+        if (currentMainView === 'inbox') return e.to.toLowerCase() === currentUser.email.toLowerCase();
+        if (currentMainView === 'sent') return e.from.toLowerCase() === currentUser.email.toLowerCase();
+      });
+
+      if (filteredEmails.length === 0) {
+        listContainer.innerHTML = `<div style="padding: 32px; text-align: center; color: #747775;">No messages in ${currentMainView}.</div>`;
+        return;
+      }
+
+      filteredEmails.forEach(email => {
+        const item = document.createElement('div');
+        item.className = `email-item ${!email.read && currentMainView === 'inbox' ? 'unread' : ''}`;
+        
+        const displayUser = currentMainView === 'inbox' ? email.fromName || email.from : email.to;
+
+        item.innerHTML = `
+          <div class="email-sender">${displayUser}</div>
+          <div class="email-subject">
+            ${email.subject} - <span style="color:#747775; font-weight:normal;">${email.message.replace(/<[^>]*>?/gm, '')}</span>
+          </div>
+          <div class="email-date">${new Date(email.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+        `;
+
+        item.onclick = () => openEmailDetail(email);
+        listContainer.appendChild(item);
+      });
+    }
+
+    function openEmailDetail(email) {
+      selectedEmail = email;
+      email.read = true;
+      saveState();
+
+      document.getElementById('email-list-view').classList.add('hidden');
+      document.getElementById('email-detail-view').classList.remove('hidden');
+
+      document.getElementById('detail-subject').innerText = email.subject;
+      document.getElementById('detail-sender').innerText = `From: ${email.fromName} <${email.from}> | To: ${email.to}`;
+      document.getElementById('detail-date').innerText = new Date(email.timestamp).toLocaleString();
+      document.getElementById('detail-body').innerHTML = email.message;
+    }
+
+    function closeEmailDetail() {
+      document.getElementById('email-list-view').classList.remove('hidden');
+      document.getElementById('email-detail-view').classList.add('hidden');
+      selectedEmail = null;
+    }
+
+    function openCompose(to = '', subject = '') {
+      document.getElementById('compose-to').value = to;
+      document.getElementById('compose-subject').value = subject;
+      document.getElementById('compose-message').value = '';
+      document.getElementById('compose-modal').classList.remove('hidden');
+    }
+
+    function closeCompose() {
+      document.getElementById('compose-modal').classList.add('hidden');
+    }
+
+    function sendEmail() {
+      const to = document.getElementById('compose-to').value.trim();
+      const subject = document.getElementById('compose-subject').value.trim();
+      const message = document.getElementById('compose-message').value;
+
+      if (!to || !subject || !message) {
+        showToast('Please fill out all email fields.');
+        return;
+      }
+
+      const newEmail = {
+        id: 'msg-' + Date.now(),
+        from: currentUser.email,
+        fromName: currentUser.name,
+        to: to,
+        subject: subject,
+        message: message,
+        timestamp: Date.now(),
+        read: false
+      };
+
+      emails.unshift(newEmail);
+      saveState();
+
+      closeCompose();
+      showToast('Email sent successfully!');
+      if (currentMainView !== 'chat') renderEmailList();
+    }
+
+    function replyToCurrentEmail() {
+      if (selectedEmail) {
+        openCompose(selectedEmail.from, `Re: ${selectedEmail.subject}`);
+      }
+    }
+
+    // Bhuta Chat Functions (Teams / WhatsApp Style)
+    function renderChatSidebar() {
+      const chatList = document.getElementById('chat-list');
+      chatList.innerHTML = '';
+
+      // Collect all chat partners for the currentUser
+      const partners = new Set();
+      chatMessages.forEach(msg => {
+        if (msg.from.toLowerCase() === currentUser.email.toLowerCase()) partners.add(msg.to.toLowerCase());
+        if (msg.to.toLowerCase() === currentUser.email.toLowerCase()) partners.add(msg.from.toLowerCase());
+      });
+
+      partners.forEach(partnerEmail => {
+        const item = document.createElement('div');
+        item.className = `chat-user-item ${activeChatTarget === partnerEmail ? 'active' : ''}`;
+        item.innerHTML = `
+          <div class="profile-avatar" style="width:32px; height:32px; font-size:12px;">${partnerEmail.charAt(0).toUpperCase()}</div>
+          <div style="font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis;">${partnerEmail}</div>
+        `;
+        item.onclick = () => selectChatTarget(partnerEmail);
+        chatList.appendChild(item);
+      });
+    }
+
+    function startNewChat() {
+      const target = document.getElementById('new-chat-email').value.trim().toLowerCase();
+      if (!target) return;
+      if (target === currentUser.email.toLowerCase()) {
+        showToast("You can't chat with yourself!");
+        return;
+      }
+
+      activeChatTarget = target;
+      document.getElementById('new-chat-email').value = '';
+      renderChatSidebar();
+      renderChatMessages();
+    }
+
+    function selectChatTarget(targetEmail) {
+      activeChatTarget = targetEmail;
+      renderChatSidebar();
+      renderChatMessages();
+    }
+
+    function renderChatMessages() {
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = '';
+
+      if (!activeChatTarget) {
+        document.getElementById('active-chat-user').innerText = 'Select or start a new chat';
+        return;
+      }
+
+      document.getElementById('active-chat-user').innerText = `Chatting with: ${activeChatTarget}`;
+
+      const activeMsgs = chatMessages.filter(m => 
+        (m.from.toLowerCase() === currentUser.email.toLowerCase() && m.to.toLowerCase() === activeChatTarget) ||
+        (m.to.toLowerCase() === currentUser.email.toLowerCase() && m.from.toLowerCase() === activeChatTarget)
+      );
+
+      activeMsgs.forEach(m => {
+        const bubble = document.createElement('div');
+        const isOutgoing = m.from.toLowerCase() === currentUser.email.toLowerCase();
+        bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
+        bubble.innerHTML = `
+          <div>${m.text}</div>
+          <div style="font-size:10px; color:#747775; text-align:right; margin-top:4px;">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+        `;
+        container.appendChild(bubble);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+
+      if (!text || !activeChatTarget) return;
+
+      const newMsg = {
+        id: 'chat-' + Date.now(),
+        from: currentUser.email,
+        to: activeChatTarget,
+        text: text,
+        timestamp: Date.now()
+      };
+
+      chatMessages.push(newMsg);
+      saveState();
+
+      input.value = '';
+      renderChatSidebar();
+      renderChatMessages();
+
+      // Auto reply simulation if chatting with an account on this machine
+      const targetUser = users.find(u => u.email.toLowerCase() === activeChatTarget.toLowerCase());
+      if (targetUser) {
+        setTimeout(() => {
+          chatMessages.push({
+            id: 'chat-' + Date.now(),
+            from: targetUser.email,
+            to: currentUser.email,
+            text: `Hey! I received your message: "${text}"`,
+            timestamp: Date.now()
+          });
+          saveState();
+          if (activeChatTarget === targetUser.email.toLowerCase()) {
+            renderChatMessages();
+          }
+        }, 1500);
+      }
+    }
+
+    function handleChatKeyPress(e) {
+      if (e.key === 'Enter') {
+        sendChatMessage();
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
