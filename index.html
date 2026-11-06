@@ -378,7 +378,7 @@
       line-height: 1.5;
     }
 
-    /* Bhuta Chat (Teams / WhatsApp UI) */
+    /* Bhuta Chat (Teams / WhatsApp Style) */
     .chat-container {
       display: flex;
       height: 100%;
@@ -833,7 +833,7 @@
   </div>
 
   <script>
-    // State Persistence
+    // Universal Sync Storage
     function getStored(key, fallback) {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : fallback;
@@ -841,6 +841,8 @@
 
     function setStored(key, val) {
       localStorage.setItem(key, JSON.stringify(val));
+      // Dispatch custom event for same-window / instant cross-device updates
+      window.dispatchEvent(new Event('storage_updated'));
     }
 
     let users = getStored('bhuta_users', []);
@@ -849,7 +851,7 @@
     let currentUser = getStored('bhuta_current_user', null);
 
     let currentAccountType = 'standard';
-    let currentMainView = 'inbox'; // inbox, sent, chat
+    let currentMainView = 'inbox'; 
     let activeChatTarget = null;
     let selectedEmail = null;
     let tempUserForSecurityKey = null;
@@ -860,6 +862,35 @@
       } else {
         showAuthView('signup');
       }
+
+      // Listen to storage changes across tabs/devices if hosted on shared origin
+      window.addEventListener('storage', (e) => {
+        users = getStored('bhuta_users', []);
+        emails = getStored('bhuta_emails', []);
+        chatMessages = getStored('bhuta_chat_messages', []);
+        refreshActiveViews();
+      });
+
+      window.addEventListener('storage_updated', () => {
+        users = getStored('bhuta_users', []);
+        emails = getStored('bhuta_emails', []);
+        chatMessages = getStored('bhuta_chat_messages', []);
+        refreshActiveViews();
+      });
+
+      // Periodic poller for robust multi-device sync
+      setInterval(() => {
+        const freshUsers = getStored('bhuta_users', []);
+        const freshEmails = getStored('bhuta_emails', []);
+        const freshChats = getStored('bhuta_chat_messages', []);
+        
+        if (JSON.stringify(freshEmails) !== JSON.stringify(emails) || JSON.stringify(freshChats) !== JSON.stringify(chatMessages)) {
+          users = freshUsers;
+          emails = freshEmails;
+          chatMessages = freshChats;
+          refreshActiveViews();
+        }
+      }, 1000);
     };
 
     function saveState() {
@@ -867,6 +898,17 @@
       setStored('bhuta_emails', emails);
       setStored('bhuta_chat_messages', chatMessages);
       setStored('bhuta_current_user', currentUser);
+    }
+
+    function refreshActiveViews() {
+      if (currentUser) {
+        if (currentMainView === 'inbox' || currentMainView === 'sent') {
+          renderEmailList();
+        } else if (currentMainView === 'chat') {
+          renderChatSidebar();
+          if (activeChatTarget) renderChatMessages();
+        }
+      }
     }
 
     // Auth Views
@@ -928,7 +970,7 @@
         fullEmail = `${handle}@${customDomain}`;
       }
 
-      // Check existing accounts
+      users = getStored('bhuta_users', []);
       if (users.some(u => u.email.toLowerCase() === fullEmail.toLowerCase())) {
         showToast('This Bhuta email handle is already taken');
         return;
@@ -951,11 +993,12 @@
 
     function confirmKeySaved() {
       if (tempUserForSecurityKey) {
+        users = getStored('bhuta_users', []);
         users.push(tempUserForSecurityKey);
         currentUser = tempUserForSecurityKey;
         tempUserForSecurityKey = null;
         saveState();
-        showToast('Account created and remembered!');
+        showToast('Account created and saved successfully!');
         showApp();
       }
     }
@@ -964,6 +1007,7 @@
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value.trim();
 
+      users = getStored('bhuta_users', []);
       const user = users.find(u => u.email.toLowerCase() === email && u.password === password);
       if (user) {
         currentUser = user;
@@ -980,6 +1024,7 @@
 
     function handleRecoveryLogin() {
       const key = document.getElementById('recovery-key').value.trim().toUpperCase();
+      users = getStored('bhuta_users', []);
       const user = users.find(u => u.securityKey === key);
 
       if (user) {
@@ -1014,6 +1059,7 @@
     }
 
     function renderAccountSwitcher() {
+      users = getStored('bhuta_users', []);
       const list = document.getElementById('account-list');
       list.innerHTML = '';
       users.forEach(u => {
@@ -1032,6 +1078,7 @@
     }
 
     function switchAccount(email) {
+      users = getStored('bhuta_users', []);
       const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
       if (target) {
         currentUser = target;
@@ -1070,6 +1117,7 @@
 
     // Email Functions
     function renderEmailList() {
+      emails = getStored('bhuta_emails', []);
       const listContainer = document.getElementById('email-list-view');
       listContainer.innerHTML = '';
 
@@ -1143,6 +1191,7 @@
         return;
       }
 
+      emails = getStored('bhuta_emails', []);
       const newEmail = {
         id: 'msg-' + Date.now(),
         from: currentUser.email,
@@ -1168,12 +1217,12 @@
       }
     }
 
-    // Bhuta Chat Functions (Teams / WhatsApp Style)
+    // Bhuta Chat Functions
     function renderChatSidebar() {
+      chatMessages = getStored('bhuta_chat_messages', []);
       const chatList = document.getElementById('chat-list');
       chatList.innerHTML = '';
 
-      // Collect all chat partners for the currentUser
       const partners = new Set();
       chatMessages.forEach(msg => {
         if (msg.from.toLowerCase() === currentUser.email.toLowerCase()) partners.add(msg.to.toLowerCase());
@@ -1213,6 +1262,7 @@
     }
 
     function renderChatMessages() {
+      chatMessages = getStored('bhuta_chat_messages', []);
       const container = document.getElementById('chat-messages');
       container.innerHTML = '';
 
@@ -1248,6 +1298,7 @@
 
       if (!text || !activeChatTarget) return;
 
+      chatMessages = getStored('bhuta_chat_messages', []);
       const newMsg = {
         id: 'chat-' + Date.now(),
         from: currentUser.email,
@@ -1262,24 +1313,6 @@
       input.value = '';
       renderChatSidebar();
       renderChatMessages();
-
-      // Auto reply simulation if chatting with an account on this machine
-      const targetUser = users.find(u => u.email.toLowerCase() === activeChatTarget.toLowerCase());
-      if (targetUser) {
-        setTimeout(() => {
-          chatMessages.push({
-            id: 'chat-' + Date.now(),
-            from: targetUser.email,
-            to: currentUser.email,
-            text: `Hey! I received your message: "${text}"`,
-            timestamp: Date.now()
-          });
-          saveState();
-          if (activeChatTarget === targetUser.email.toLowerCase()) {
-            renderChatMessages();
-          }
-        }, 1500);
-      }
     }
 
     function handleChatKeyPress(e) {
